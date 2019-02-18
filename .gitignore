@@ -1,8 +1,12 @@
-# ignore solc build directory
+# solc build directory
 build/
 
-# ignore secret files
+# secret files
 *.secret
 
-# ignore any log files
+# any log files
 *.log
+
+# npm modules dir and lock file
+node_modules/
+package-lock.json

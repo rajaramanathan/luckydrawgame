@@ -1,0 +1,29 @@
+{
+  "name": "luckydraw",
+  "version": "1.0.0",
+  "description": "LuckyDraw Game on block chain",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajaramanathan/luckydrawgame.git"
+  },
+  "keywords": [
+    "lucky",
+    "game"
+  ],
+  "author": "Raja Ramanathan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rajaramanathan/luckydrawgame/issues"
+  },
+  "homepage": "https://github.com/rajaramanathan/luckydrawgame#readme",
+  "dependencies": {
+    "truffle-hdwallet-provider": "^1.0.4"
+  }
+}
