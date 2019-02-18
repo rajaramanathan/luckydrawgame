@@ -1,0 +1,8 @@
+# ignore solc build directory
+build/
+
+# ignore secret files
+*.secret
+
+# ignore any log files
+*.log
