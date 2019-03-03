@@ -10,3 +10,6 @@ build/
 # npm modules dir and lock file
 node_modules/
 package-lock.json
+
+# ide files
+.DS_Store
