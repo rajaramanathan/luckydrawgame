@@ -1,4 +1,4 @@
-pragma solidity >=0.4.9;
+pragma solidity >=0.4.0 <0.6.0;
 
 /**
  * Author: Raja Ramanathan
@@ -6,12 +6,19 @@ pragma solidity >=0.4.9;
  * Game organizer need to close the game after it ends to claim the remaining balance. 
 */
 contract LuckyDrawGame {
+
     address private gameOrganizer;
-    uint private bountyRange; 
-    uint private bountyWeiUnits; 
-    uint private gameSeed;
-    uint private gameEndTime; 
-    mapping (address => bool) private timesPlayed;
+
+    struct Game {
+        bool isOpen;
+        uint bountyRange;  // bounty per draw
+        uint bountyWeis; 
+        uint endTime; 
+        uint balance; 
+        mapping (address => bool) timesPlayed;
+    }
+
+    mapping (address => Game) private games; //map of game owner to game
 
     constructor() public payable {
         gameOrganizer = msg.sender;
@@ -22,23 +29,22 @@ contract LuckyDrawGame {
         _;
     }
     
-    /**
-     * Game is open when there is a balance and game has not expired.
-     * 
-    */
-    modifier isGameOpen() {
-        require (gameEndTime != 0, "Game not started.");
-        require (address(this).balance > 0, "Game has no balance left to draw");
-        require (now <= gameEndTime, "Game has expired.");
+    modifier newGameAllowed() {
+        require (!games[msg.sender].isOpen, "Only one open game per organizer.");
         _;
     }
     
     /**
-     * Player allowed to draw only maxTriesPerPlayer times.
-     *
+     * A player is allowed to draw only when 
+     *  game as not expired  and has balance
+     *  player has not drawn before
     */
-    modifier isPlayerAllowed() {
-        require (!timesPlayed[msg.sender], "Player reached max tries.");
+    modifier isDrawAllowed(address gameId) {
+        Game storage game = games[msg.sender];
+        require (game.isOpen, "Game not started.");
+        require (game.balance > 0, "Game has no balance left to draw");
+        require (now <= game.endTime, "Game has expired.");
+        require (!game.timesPlayed[msg.sender], "Player reached max tries.");
         _;
     }
     
@@ -47,33 +53,33 @@ contract LuckyDrawGame {
      * Acceptable for demo and very small amounts.
      * 
     */ 
-    function pseudoRandomNumberGenerator() public view returns(uint) {
-        return uint(keccak256(abi.encodePacked(msg.sender,gameSeed))) % bountyRange;
+    function pseudoRandomNumberGenerator(uint luckyNumber,uint bountyRange) private view returns(uint) {
+        return uint(keccak256(abi.encodePacked(msg.sender,luckyNumber))) % bountyRange;
     }
 
      /**
-     *  _bountyRange: Max range of the bounty 0.._bountyRange
-     *  _bountyWeiUnits: Wei units expressed in exponentials of 10. Eg: 12 for Szabo, 9 for shannon 
-     *  _gameSeed: Seed for determining bounty
-     * _durationInMinutes: for game to expire from now
+     *  bountyRange: Max range of the bounty 0.._bountyRange
+     *  bountyWeiUnits: Wei units expressed in exponentials of 10. Eg: 12 for Szabo, 9 for shannon 
+     *  durationInMinutes: for game to expire from now
      *
     */
-    function start (uint _bountyRange, uint _bountyWeiUnits, uint _gameSeed, uint _durationInMinutes) public isGameOrganizer payable {
-        require (gameEndTime == 0, "Game is in progress already.");
-        bountyRange = _bountyRange;
-        bountyWeiUnits = 1 * 10**_bountyWeiUnits;
-        require(address(this).balance + msg.value > bountyRange * bountyWeiUnits,"Not enough value sent");
-        gameSeed = _gameSeed;
-        gameEndTime =  now + _durationInMinutes * 1 minutes;
+    function start (uint bountyRange, uint bountyWeiUnits, uint durationInMinutes) public newGameAllowed payable returns(address gameId) {
+        uint bountyWeis = 1 * 10**bountyWeiUnits;
+        require(msg.value > bountyRange * bountyWeis,"Not enough value sent");
+        games[msg.sender] = Game(true,bountyRange,bountyWeis,now + durationInMinutes * 1 minutes, msg.value);
+        return (msg.sender);
     }
     
     /**
-     * draw. Player should have enough gas to draw and earn bounty.
+     * draw: Player should have enough gas to draw and earn bounty.
+     * gameId: a game is uniquely identified by the address of the game owner.
     */
-    function draw() public isGameOpen isPlayerAllowed  payable returns (uint){
-        uint bounty = pseudoRandomNumberGenerator() * bountyWeiUnits;
+    function draw(address gameId,uint luckyNumber) public isDrawAllowed(gameId) payable returns (uint){
+        Game storage game = games[msg.sender];
+        uint bounty = pseudoRandomNumberGenerator(luckyNumber, game.bountyRange) * game.bountyWeis;
         msg.sender.transfer(bounty);
-        timesPlayed[msg.sender] = true;
+        game.balance -= (bounty);
+        game.timesPlayed[msg.sender] = true;
         return bounty;
     }
     
@@ -81,9 +87,18 @@ contract LuckyDrawGame {
      * Game organizer can end the game anytime and get refund of the balance 
     */
     function end() public payable returns (uint) {
-        require (msg.sender == gameOrganizer, "Only game organizer can close.");
-        require (address(this).balance > 0, "Game has no balance left to refund");
-        gameEndTime = 0;
-        msg.sender.transfer(address(this).balance);
+        Game storage game = games[msg.sender];
+        require (game.balance > 0, "No balance on game to close.");
+        msg.sender.transfer(game.balance);
+        game.balance = 0;
+        game.endTime = 0;
+    }
+
+    /*
+     * Fetch details of a game. Allowed only for game organizer
+    */
+    function getGame(address gameId) public view isGameOrganizer returns (bool isOpen,uint balance, uint endTime) {
+        Game storage game = games[gameId];
+        return (game.isOpen, game.balance, game.endTime);
     }
 }
