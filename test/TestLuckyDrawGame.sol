@@ -27,6 +27,21 @@ contract TestLuckyDrawGame {
         Assert.equal(gameBounty, address(luckyDrawGame).balance,"Initial balance after start is incorrect");
     }
 
+    function testGameCount() public {
+        Assert.equal(1, luckyDrawGame.getGameCount(), "There should be only one game");
+    }
+
+    function testGameIds() public {
+        Assert.equal(gameId, luckyDrawGame.getGameIds()[0], "GameId does not match");
+    }
+
+    function testGetGame() public {
+        (bool isOpen, uint balance, uint endTime) = luckyDrawGame.getGame(gameId);
+        Assert.equal(true, isOpen,"Initial balance after start is incorrect");
+        Assert.notEqual(0, balance, "balance was zero");
+        Assert.notEqual(0, endTime, "endTime was zero");
+    }
+
     function testDraw() public payable {
         uint bounty = luckyDrawGame.draw.gas(3000000)(gameId,1);
         Assert.notEqual(0, bounty, "draw was zero");

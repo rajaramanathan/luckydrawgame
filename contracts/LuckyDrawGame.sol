@@ -7,7 +7,7 @@ pragma solidity >=0.4.0 <0.6.0;
 */
 contract LuckyDrawGame {
 
-    address private gameOrganizer;
+    address private gameOrganizer; //owner of the LuckyDrawGame contract
 
     struct Game {
         bool isOpen;
@@ -19,6 +19,8 @@ contract LuckyDrawGame {
     }
 
     mapping (address => Game) private games; //map of game owner to game
+    
+    address[] private gameIds;  //list of games
 
     constructor() public payable {
         gameOrganizer = msg.sender;
@@ -64,10 +66,11 @@ contract LuckyDrawGame {
      *
     */
     function start (uint bountyRange, uint bountyWeiUnits, uint durationInMinutes) public newGameAllowed payable returns(address gameId) {
+        gameId = msg.sender;
         uint bountyWeis = 1 * 10**bountyWeiUnits;
         require(msg.value > bountyRange * bountyWeis,"Not enough value sent");
-        games[msg.sender] = Game(true,bountyRange,bountyWeis,now + durationInMinutes * 1 minutes, msg.value);
-        return (msg.sender);
+        games[gameId] = Game(true,bountyRange,bountyWeis,now + durationInMinutes * 1 minutes, msg.value);
+        gameIds.push(gameId);
     }
     
     /**
@@ -95,9 +98,23 @@ contract LuckyDrawGame {
     }
 
     /*
+     * returns list of game ids 
+    */
+    function getGameIds() external view isGameOrganizer returns(address[] memory){
+        return gameIds;
+    }
+
+    /*
+     * returns number of games 
+    */
+    function getGameCount() external view isGameOrganizer returns(uint){
+        return gameIds.length;
+    }
+
+    /*
      * Fetch details of a game. Allowed only for game organizer
     */
-    function getGame(address gameId) public view isGameOrganizer returns (bool isOpen,uint balance, uint endTime) {
+    function getGame(address gameId) external view isGameOrganizer returns (bool isOpen,uint balance, uint endTime) {
         Game storage game = games[gameId];
         return (game.isOpen, game.balance, game.endTime);
     }
