@@ -22,7 +22,7 @@ contract LuckyDrawGame {
     
     address[] private gameIds;  //list of games
 
-    constructor() public payable {
+    constructor() public {
         gameOrganizer = msg.sender;
     }
 
