@@ -89,9 +89,10 @@ contract LuckyDrawGame {
     /**
      * Game organizer can end the game anytime and get refund of the balance 
     */
-    function end() public payable returns (uint) {
+    function end() public payable returns (uint gameBalance) {
         Game storage game = games[msg.sender];
-        require (game.balance > 0, "No balance on game to close.");
+        gameBalance = game.balance;
+        require (gameBalance > 0, "No balance on game to close.");
         msg.sender.transfer(game.balance);
         game.balance = 0;
         game.endTime = 0;
