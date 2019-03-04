@@ -4,7 +4,7 @@ import "truffle/Assert.sol";
 import "truffle/DeployedAddresses.sol";
 import "../contracts/LuckyDrawGame.sol";
 
-contract TestLuckyDrawGame {
+contract UnitTest {
 
     //need ether to start game
     uint public initialBalance = 10 ether;
