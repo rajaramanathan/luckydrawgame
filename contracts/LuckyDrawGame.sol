@@ -42,7 +42,7 @@ contract LuckyDrawGame {
      *  player has not drawn before
     */
     modifier isDrawAllowed(address gameId) {
-        Game storage game = games[msg.sender];
+        Game storage game = games[gameId];
         require (game.isOpen, "Game not started.");
         require (game.balance > 0, "Game has no balance left to draw");
         require (now <= game.endTime, "Game has expired.");
@@ -78,7 +78,7 @@ contract LuckyDrawGame {
      * gameId: a game is uniquely identified by the address of the game owner.
     */
     function draw(address gameId,uint luckyNumber) public isDrawAllowed(gameId) payable returns (uint){
-        Game storage game = games[msg.sender];
+        Game storage game = games[gameId];
         uint bounty = pseudoRandomNumberGenerator(luckyNumber, game.bountyRange) * game.bountyWeis;
         msg.sender.transfer(bounty);
         game.balance -= (bounty);
@@ -94,6 +94,7 @@ contract LuckyDrawGame {
         gameBalance = game.balance;
         require (gameBalance > 0, "No balance on game to close.");
         msg.sender.transfer(game.balance);
+        game.isOpen = false;
         game.balance = 0;
         game.endTime = 0;
     }
