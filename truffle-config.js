@@ -17,7 +17,7 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
-
+const path = require("path");
 const HDWalletProvider = require('truffle-hdwallet-provider');
 const infuraKey = "713f93fc16d0470784213264c67f84c1713f93fc16d0470784213264c67f84c1";
 //
@@ -25,6 +25,12 @@ const fs = require('fs');
 const mnemonic = fs.readFileSync("luckydraw.secret").toString().trim();
 
 module.exports = {
+
+  /**
+   * Customize the build directory for contracts to be under the Drizzle react project source directory.
+   */
+  contracts_build_directory: path.join(__dirname, "app/src/contracts"),
+
   /**
    * Networks define how you connect to your ethereum client and let you set the
    * defaults web3 uses to send transactions. If you don't specify one truffle
