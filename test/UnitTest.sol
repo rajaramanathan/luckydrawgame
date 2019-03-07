@@ -35,8 +35,8 @@ contract UnitTest {
         Assert.equal(gameId, luckyDrawGame.getGameIds()[0], "GameId does not match");
     }
 
-    function testGetGame() public {
-        (bool isOpen, uint balance, uint endTime) = luckyDrawGame.getGame(gameId);
+    function testGetGameInfo() public {
+        (bool isOpen, uint balance, uint endTime) = luckyDrawGame.getGameInfo(gameId);
         Assert.equal(true, isOpen,"Initial balance after start is incorrect");
         Assert.notEqual(0, balance, "balance was zero");
         Assert.notEqual(0, endTime, "endTime was zero");

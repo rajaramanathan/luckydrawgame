@@ -15,7 +15,7 @@ contract LuckyDrawGame {
         uint bountyWeis; 
         uint endTime; 
         uint balance; 
-        mapping (address => bool) timesPlayed;
+        mapping (address => uint) bountyOwn; //bounty won by each player
     }
 
     mapping (address => Game) private games; //map of game owner to game
@@ -46,7 +46,7 @@ contract LuckyDrawGame {
         require (game.isOpen, "Game not started.");
         require (game.balance > 0, "Game has no balance left to draw");
         require (now <= game.endTime, "Game has expired.");
-        require (!game.timesPlayed[msg.sender], "Player reached max tries.");
+        require (game.bountyOwn[msg.sender] == 0 , "Player can play only once.");
         _;
     }
     
@@ -80,9 +80,9 @@ contract LuckyDrawGame {
     function draw(address gameId,uint luckyNumber) public isDrawAllowed(gameId) payable returns (uint){
         Game storage game = games[gameId];
         uint bounty = pseudoRandomNumberGenerator(luckyNumber, game.bountyRange) * game.bountyWeis;
-        msg.sender.transfer(bounty);
         game.balance -= (bounty);
-        game.timesPlayed[msg.sender] = true;
+        game.bountyOwn[msg.sender] = bounty;
+        msg.sender.transfer(bounty);
         return bounty;
     }
     
@@ -116,8 +116,17 @@ contract LuckyDrawGame {
     /*
      * Fetch details of a game. Allowed only for game organizer
     */
-    function getGame(address gameId) external view isGameOrganizer returns (bool isOpen,uint balance, uint endTime) {
+    function getGameInfo(address gameId) external view isGameOrganizer returns (bool isOpen,uint balance, uint endTime) {
         Game storage game = games[gameId];
         return (game.isOpen, game.balance, game.endTime);
+    }
+
+    /*
+     * Fetch details of game along with players win. Allowed only for game organizer
+    */
+    function getPlayerGameInfo(address gameId,address player) external view isGameOrganizer 
+        returns (bool isOpen, uint balance, uint endTime, uint bountyOwn) {
+        Game storage game = games[gameId];
+        return (game.isOpen, game.balance, game.endTime, game.bountyOwn[player]);
     }
 }
