@@ -112,7 +112,7 @@ contract("Game player tests", async accounts => {
         try{
             await instance.draw(gameId, 10,{from: gamePlayer1})
         }catch(err){
-            exceptionRaised = err.message.includes("Player reached max tries");
+            exceptionRaised = err.message.includes("Player can play only once");
         }
         if (!exceptionRaised) assert.fail(); 
     });
@@ -137,7 +137,7 @@ contract("Game life cycle tests", async accounts => {
 
     it("gameOrganizer: game info after start", async () => {
         let instance = await LuckyDrawGame.deployed();
-        let gameInfo = await instance.getGame(gameId,{from: gameOrganizer});
+        let gameInfo = await instance.getGameInfo(gameId,{from: gameOrganizer});
         assert.isTrue(gameInfo.isOpen);
         isAtLeast(gameInfo.balance,fiveEther);
         //end time should not be more than 1 minute from expected end time.
@@ -165,10 +165,18 @@ contract("Game life cycle tests", async accounts => {
 
     it("gameOrganizer: game info after end", async () => {
         let instance = await LuckyDrawGame.deployed();
-        let gameInfo = await instance.getGame(gameId,{from: gameOrganizer});
+        let gameInfo = await instance.getGameInfo(gameId,{from: gameOrganizer});
         assert.isFalse(gameInfo.isOpen);
         assert.equal(gameInfo.balance,0);
         assert.equal(gameInfo.endTime,0);
     });
    
+    it("gameOrganizer: game info by player after end", async () => {
+        let instance = await LuckyDrawGame.deployed();
+        let gameInfo = await instance.getPlayerGameInfo(gameId, gamePlayer);
+        assert.isFalse(gameInfo.isOpen);
+        assert.equal(gameInfo.balance,0);
+        assert.equal(gameInfo.endTime,0);
+        assert.isTrue(gameInfo.bountyOwn > 0);
+    });
 });
