@@ -124,6 +124,7 @@ contract("Game life cycle tests", async accounts => {
     const gameOrganizer = accounts[0]; //used by default for contract deploy
     const gameOwner = accounts[1];
     const gamePlayer = accounts[2];
+    const gamePlayerA = accounts[3];
     let gameId;
     let expectedGameEndTime;
 
@@ -149,6 +150,11 @@ contract("Game life cycle tests", async accounts => {
     it("player: draw", async () => {
         let instance = await LuckyDrawGame.deployed();
         await instance.draw(gameId, 10,{from: gamePlayer})
+    });
+
+    it("player: draw", async () => {
+        let instance = await LuckyDrawGame.deployed();
+        await instance.draw(gameId, 5,{from: gamePlayerA})
     });
 
     it("gameOrganizer: game info", async () => {
@@ -177,6 +183,15 @@ contract("Game life cycle tests", async accounts => {
         assert.isFalse(gameInfo.isOpen);
         assert.equal(gameInfo.balance,0);
         assert.equal(gameInfo.endTime,0);
-        assert.isTrue(gameInfo.bountyOwn > 0);
+        assert.isTrue(gameInfo.bountyWon > 0);
+    });
+
+    it("gameOrganizer: all game info by player after end", async () => {
+        let instance = await LuckyDrawGame.deployed();
+        let allGamesInfo = await instance.getPlayerAllGameInfo(gamePlayer);
+        assert.equal(allGamesInfo.ids[0],gameId);
+        assert.isTrue(allGamesInfo.maxBounty[0] > 0);
+        assert.equal(allGamesInfo.endTime[0],0);
+        assert.isTrue(allGamesInfo.bountyWon[0] > 0);
     });
 });

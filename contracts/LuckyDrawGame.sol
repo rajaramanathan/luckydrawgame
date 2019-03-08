@@ -15,10 +15,10 @@ contract LuckyDrawGame {
         uint bountyWeis; 
         uint endTime; 
         uint balance; 
-        mapping (address => uint) bountyOwn; //bounty won by each player
+        mapping (address => uint) bountyWon; //bounty won by each player
     }
 
-    mapping (address => Game) private games; //map of game owner to game
+    mapping (address => Game) private games; //map of gameid to game
     
     address[] private gameIds;  //list of games
 
@@ -46,7 +46,7 @@ contract LuckyDrawGame {
         require (game.isOpen, "Game not started.");
         require (game.balance > 0, "Game has no balance left to draw");
         require (now <= game.endTime, "Game has expired.");
-        require (game.bountyOwn[msg.sender] == 0 , "Player can play only once.");
+        require (game.bountyWon[msg.sender] == 0 , "Player can play only once.");
         _;
     }
     
@@ -81,7 +81,7 @@ contract LuckyDrawGame {
         Game storage game = games[gameId];
         uint bounty = pseudoRandomNumberGenerator(luckyNumber, game.bountyRange) * game.bountyWeis;
         game.balance -= (bounty);
-        game.bountyOwn[msg.sender] = bounty;
+        game.bountyWon[msg.sender] = bounty;
         msg.sender.transfer(bounty);
         return bounty;
     }
@@ -125,8 +125,31 @@ contract LuckyDrawGame {
      * Fetch details of game along with players win. Allowed only for game organizer
     */
     function getPlayerGameInfo(address gameId,address player) external view isGameOrganizer 
-        returns (bool isOpen, uint balance, uint endTime, uint bountyOwn) {
+        returns (bool isOpen, uint balance, uint endTime, uint bountyWon) {
         Game storage game = games[gameId];
-        return (game.isOpen, game.balance, game.endTime, game.bountyOwn[player]);
+        return (game.isOpen, game.balance, game.endTime, game.bountyWon[player]);
+    }
+
+
+    /*
+     * Fetch details of game along with players win. Allowed only for game organizer
+    */
+    function getPlayerAllGameInfo(address player) external view isGameOrganizer 
+        returns (address[] memory ids, uint[] memory maxBounty, uint[] memory endTime, uint[] memory bountyWon) {
+        
+        //initialize
+        ids = new address[](gameIds.length);
+        maxBounty = new uint[](gameIds.length);
+        endTime = new uint[](gameIds.length);
+        bountyWon = new uint[](gameIds.length);
+
+        //populate
+        for (uint i = 0; i < gameIds.length; i++) {
+            Game storage game = games[gameIds[i]];
+            ids[i] = gameIds[i];
+            maxBounty[i] = game.bountyRange * game.bountyWeis;
+            endTime[i] = game.endTime;
+            bountyWon[i] = game.bountyWon[player];
+        }
     }
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 import { DrizzleContext } from 'drizzle-react';
-import Game from "./Game";
+import Games from "./Games";
 
 class GameContainer extends Component {
 
@@ -17,7 +17,7 @@ class GameContainer extends Component {
           //console.log(drizzle, drizzleState);
 
           return (
-            <Game drizzle={drizzle} drizzleState={drizzleState} />
+            <Games drizzle={drizzle} drizzleState={drizzleState} />
           );
           
         }}
