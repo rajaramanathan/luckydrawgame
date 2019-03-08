@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/rajaramanathan/luckydrawgame#readme",
   "dependencies": {
+    "truffle-contract": "^4.0.8",
     "truffle-hdwallet-provider": "^1.0.4"
   }
 }
