@@ -94,7 +94,7 @@ contract("Game player tests", async accounts => {
     it("draw - player1", async () => {
         let gamePlayer1StartBalance = await web3.eth.getBalance(gamePlayer1);
         let instance = await LuckyDrawGame.deployed();
-        await instance.draw(gameId, 10,{from: gamePlayer1})
+        await instance.draw(gameId, 2,{from: gamePlayer1})
         let gamePlayer1EndBalance = await web3.eth.getBalance(gamePlayer1);
         isAtLeast(gamePlayer1EndBalance,gamePlayer1StartBalance); //end balance is more than start due to win
     });
@@ -102,7 +102,7 @@ contract("Game player tests", async accounts => {
     it("draw - player2", async () => {
         let playerStartBalance = await web3.eth.getBalance(gamePlayer2);
         let instance = await LuckyDrawGame.deployed();
-        await instance.draw(gameId, 10,{from: gamePlayer2})
+        await instance.draw(gameId, 3,{from: gamePlayer2})
         let playerEndBalance = await web3.eth.getBalance(gamePlayer2);
         isAtLeast(playerEndBalance,playerStartBalance); //end balance is more than start due to win
     });
@@ -124,6 +124,7 @@ contract("Game life cycle tests", async accounts => {
     const gameOrganizer = accounts[0]; //used by default for contract deploy
     const gameOwner = accounts[1];
     const gamePlayer = accounts[2];
+    const gamePlayerA = accounts[3];
     let gameId;
     let expectedGameEndTime;
 
@@ -148,7 +149,12 @@ contract("Game life cycle tests", async accounts => {
 
     it("player: draw", async () => {
         let instance = await LuckyDrawGame.deployed();
-        await instance.draw(gameId, 10,{from: gamePlayer})
+        await instance.draw(gameId, 2,{from: gamePlayer})
+    });
+
+    it("player: draw", async () => {
+        let instance = await LuckyDrawGame.deployed();
+        await instance.draw(gameId, 5,{from: gamePlayerA})
     });
 
     it("gameOrganizer: game info", async () => {
@@ -177,6 +183,15 @@ contract("Game life cycle tests", async accounts => {
         assert.isFalse(gameInfo.isOpen);
         assert.equal(gameInfo.balance,0);
         assert.equal(gameInfo.endTime,0);
-        assert.isTrue(gameInfo.bountyOwn > 0);
+        assert.isTrue(gameInfo.bountyWon > 0);
+    });
+
+    it("gameOrganizer: all game info by player after end", async () => {
+        let instance = await LuckyDrawGame.deployed();
+        let allGamesInfo = await instance.getPlayerAllGameInfo(gamePlayer);
+        assert.equal(allGamesInfo.ids[0],gameId);
+        assert.isTrue(allGamesInfo.maxBounty[0] > 0);
+        assert.equal(allGamesInfo.endTime[0],0);
+        assert.isTrue(allGamesInfo.bountyWon[0] > 0);
     });
 });
