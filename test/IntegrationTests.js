@@ -94,7 +94,7 @@ contract("Game player tests", async accounts => {
     it("draw - player1", async () => {
         let gamePlayer1StartBalance = await web3.eth.getBalance(gamePlayer1);
         let instance = await LuckyDrawGame.deployed();
-        await instance.draw(gameId, 10,{from: gamePlayer1})
+        await instance.draw(gameId, 2,{from: gamePlayer1})
         let gamePlayer1EndBalance = await web3.eth.getBalance(gamePlayer1);
         isAtLeast(gamePlayer1EndBalance,gamePlayer1StartBalance); //end balance is more than start due to win
     });
@@ -102,7 +102,7 @@ contract("Game player tests", async accounts => {
     it("draw - player2", async () => {
         let playerStartBalance = await web3.eth.getBalance(gamePlayer2);
         let instance = await LuckyDrawGame.deployed();
-        await instance.draw(gameId, 10,{from: gamePlayer2})
+        await instance.draw(gameId, 3,{from: gamePlayer2})
         let playerEndBalance = await web3.eth.getBalance(gamePlayer2);
         isAtLeast(playerEndBalance,playerStartBalance); //end balance is more than start due to win
     });
@@ -149,7 +149,7 @@ contract("Game life cycle tests", async accounts => {
 
     it("player: draw", async () => {
         let instance = await LuckyDrawGame.deployed();
-        await instance.draw(gameId, 10,{from: gamePlayer})
+        await instance.draw(gameId, 2,{from: gamePlayer})
     });
 
     it("player: draw", async () => {
